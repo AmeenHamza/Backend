@@ -16,4 +16,12 @@ app.use(express.urlencoded({extended : true})); // extended for taking multiple 
 app.use(express.static("public"));
 app.use(cookieParser());
 
+// Configuration of Routes
+import userRouter from './routes/user.routes.js';
+
+
+// Routes decleration (Is exactly same as we did in E-commerce)
+
+app.use('/api/v1/users', userRouter)
+
 export { app }

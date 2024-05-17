@@ -62,3 +62,46 @@
 * mongoose hamain boht si functionalities provide krta h jis mein se sab se important _methods_ h
 * ab isse faida kia hoga k hm is mein apne custom methods create krsakte h jese hm user ko _login_ krne k lye alg se _API_ banate h usmein poora code likhte h or aese hi _signup_ k lye
 * mongoose se faida kia hoga k hm _userModel_ mein hi ek method add krdainge
+
+# Cloudinary (_For Uploading Files and Images_)
+
+## How to upload an image/file on _Cloudinary_
+
+* First copy the configuration code and form cloudinary website.
+* And save all the secret variables or the name of cloud in environment file.
+* Now copy the code of upload a file from the website and paste it on the cloud.js file which is present at utils folder.
+* After that make a function that accepts a local file path.
+* Ye local file path us file ka hoga jo user apne local system se upload karega cloudinary usko apne cloud mein store krke hamain url return krdega.
+* Another important thing in upload function is the object which contains resource type like at which type of file user upload so I will set it to auto ab user jo bhi format mein file upload kre cludinary khud handle karlega.
+* If you want to see further options from cloudinary go to the cloudinary website and see the more functions like crop the image and make it size customizable also further remove background and add some new background and also add some tags this features is awesome.
+
+### Steps of handle uploading file.
+
+* In professional projects or in a Big companies first the files of user temporarily on the server then send it to the cloud this increase the optimization.
+* For handling file system we used 'fs' module and _Multer_.
+
+## Handle Files using _Multer_
+
+* Here we also use disk storage of multer because if we use the memory storage then if the user uploads large size file so it will be difficult for the application or server to manage so that is why I am using disk storage for handled files.
+
+## How to write Industry standard Controllers ?
+
+* Sabse pehle jo asynchandler ka method banaya tha usko call karo or usmein apne controllers likho.
+* app.js mein apne routes ko import karwao jese hmne backend mein index.js mein kare the ismein app.js mein krrahe h (same hi bs thora sa difference h)
+* routes k folder mein routes define honge as usual
+* '/api/v1/users' just for defining versions at this time hm pehli dafa api banarahe h to v1 h future mein kabhi update krna hoga to v2 hojayega isse easy rehta h track krne mein or IS bhi h
+* Yahan jo hm router.route likrahe h ye bhi same hi kaam krta h lekin hamain ek naya method seekhne ko mila h ab agr kahin aese bhi likha ho to hamain pata hoga k kis tarah se kaam hota h
+
+#### if ([email, fullName, password, username].some((field) => field?.trim() === "")) {
+        throw new ApiError(400, "All fields are required");
+}
+
+* ye sari fields ek sath check karega agr ek bhi field empty hogi to false return krdega
+
+### Mongo DB $operators
+
+* $or , $and (ye sare operators check karne k lye use hote h multiple conditions)
+
+### select("-password -refreshToken")
+
+* This will remove the following fields
