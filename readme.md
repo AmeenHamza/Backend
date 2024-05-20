@@ -105,3 +105,26 @@
 ### select("-password -refreshToken")
 
 * This will remove the following fields
+
+### asynHandler() _Function_
+
+* ye ek wrapper h try catch ko bar bar likhne se bchne k lye.
+* jese hm simple controller banate the same usi tarah se h but hm hr controller mein alg se try catch ka block lagate the ab is ki wajah se hamain ye nhi lagana parega.
+* Kyunke ye ek function return karraha h jo 3 argument leta h or usko as a promise treat karraha h to jo bhi error hoga ye khud hi handle karlega or hamain kuch krne ki zaroorat nhi paregi
+
+## How to access model methods ?
+
+* Jo bhi hm ne methods banaye h model mein wo sare methods User k variable mein nhi milainge jo hm ne export kia h
+* isko access krne k lye jo bhi hm ne current user ka instance banaya hoga e.g: const user =  User.findOne({email}) 
+* is user mein hamain wo sare methods milainge
+
+# What is _refreshToken_ and _accessToken_
+
+* _accessToken_ : It's similar to the token that we store in cookies with encrypted data of user the important point is that it has less expiry time as compared to refreshToken.
+* _refreshToken_ : It's also similar to accessToken but it is store in Database also in cookies and it has more expiry time than accessToken.
+* _How they works_ : as we discussed accesstoken has less expiry time like 15 min if the session expires user logout automatically for preventing the login again we used another end-point for user remain login 
+* When accesstoken expires it send 401 res to the server after that refreshtoken work starts
+* This end-point recieve the existing refreshtoken from user cookies or in the body.
+* then it checks the refreshtoken which is provided by the user and the refresh token which is present in the database is equal or not.
+* If yes it generates both new token and save into the cookies.
+* This all the business logic is similar to _Login_ Functionaliy.

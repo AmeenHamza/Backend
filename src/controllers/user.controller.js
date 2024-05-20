@@ -3,9 +3,30 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import jwt from 'jsonwebtoken';
+
+const generateAccessAndRefreshTokens = async (userId) => {
+    try {
+        const user = await User.findById(userId);
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;
+        await user.save({ validBeforeSave: false })
+
+        return { accessToken, refreshToken }
+
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating refresh and access token")
+    }
+}
 
 const registerUser = asyncHandler(async (req, res) => {
     const { email, fullName, password, username } = req.body;
+
+    if (!email || !fullName || !password || !username) {
+        throw new ApiError(400, "All fields are required");
+    }
 
     if ([email, fullName, password, username].some((field) => field?.trim() === "")) {
         throw new ApiError(400, "All fields are required");
@@ -19,11 +40,25 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(409, "User with email or username already exists")
     }
 
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+
+    if (req.files) {
+        if (Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+            if (req.files.coverImage[0].path) {
+                coverImageLocalPath = req.files.coverImage[0].path;
+            }
+        }
+    }
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is required");
+    }
+
+    if (!coverImageLocalPath) {
+        coverImageLocalPath = "";
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath);
@@ -35,14 +70,14 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const user = await User.create({
         fullName,
-        avatar : avatar.url,
-        coverImage : coverImage.url || "",
+        avatar: avatar.url,
+        coverImage: coverImage?.url || "",
         email,
         password,
-        username : username.toLowerCase()
+        username: username.toLowerCase()
     })
 
-    // For check user is created or not
+    // // For check user is created or not
     const createdUser = await User.findById(user._id).select("-password -refreshToken")
 
     if (!createdUser) {
@@ -55,4 +90,133 @@ const registerUser = asyncHandler(async (req, res) => {
 
 })
 
-export { registerUser }
+const login = asyncHandler(async (req, res) => {
+
+    const { username, email, password } = req.body;
+    console.log(username, email);
+
+    if (!username && !email) {
+        throw new ApiError(400, "username or email is required")
+    }
+
+    const user = await User.findOne({
+        $or: [{ username }, { email }]
+    })
+
+    if (!user) {
+        throw new ApiError(404, "user does not exist")
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(password);
+
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid user credentials")
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+
+    // for get update user
+    const loggedIn = await User.findById(user._id).select("-password -refreshToken");
+
+    // For cookies security
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    user: loggedIn, accessToken, refreshToken
+                },
+                "User logged In Successfully"
+            )
+        )
+
+})
+
+const logout = asyncHandler(async (req, res) => { // debug remaining
+
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined // value to update
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(new ApiResponse(200, {}, "User logged Out"))
+
+})
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "Unauthorized request");
+    }
+
+    try {
+        const decodedToken = jwt.verify(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        );
+    
+        const user = await User.findById(decodedToken._id);
+    
+        if (!user) {
+            throw new ApiError(401, "Invalid Refresh token");
+        }
+    
+        if (incomingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(401, "Refresh token is expired or used");
+        }
+    
+        const {accessToken, newRefreshToken} = await generateAccessAndRefreshTokens(user?._id);
+    
+        const options = {
+            httpOnly : true,
+            secure : true
+        }
+    
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", newRefreshToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                {accessToken, refreshToken : newRefreshToken},
+                "Access token refreshed"
+            )
+        )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid refresh Token")
+    }
+
+})
+
+export {
+    registerUser,
+    login,
+    logout,
+    refreshAccessToken
+}
