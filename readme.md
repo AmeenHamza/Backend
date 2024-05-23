@@ -128,3 +128,32 @@
 * then it checks the refreshtoken which is provided by the user and the refresh token which is present in the database is equal or not.
 * If yes it generates both new token and save into the cookies.
 * This all the business logic is similar to _Login_ Functionaliy.
+
+# To understand the _Subscription Schema_ watch video _18_
+
+## Mongodb aggregation pipelines
+
+* This topic is very tricky.
+* It's similar to foreign key or primary key in MySQL but the method is different.
+* Suppose we have two tables or models one is books and the other is authors.
+* Obviously each book have an author so if we write all the details of author in every book table it will be difficult for the Database to manage.
+* What we going to do.
+* First we make a author table and add all the details of author in the table.
+* Now each author have a unique _id so we used this _id in books table as an indicator like in author field we put author _id like 100 now go to the author table and get all the details of author.
+* In the above discussion we done all the steps customizely but the simple and optimize method of doing the same thing is _Aggregation Pipeline_
+
+### Pipelines
+
+* Pipelines boht documents ki counting usko two different models se join krke count nikalna uska data nikalna easy krdeta h hamain fuzool ki queries bar bar chalane ki zaroorat nhi parti.
+* 1- $match (for finding)
+* 2- $lookup (for joining two tables or models e.g: left join, right join)
+
+### How join two models
+
+* First write _$lookup_ pipeline and give four parameters or properties.
+* 1- _from_ : "Jis table se join krna ho uska name" (jese agr hm books k table mein h to authors ayega kyunke books mein autho_id ki field h uska data lane k lye)
+* 2- _localfield_ : "abhi hm books k table mein h to yahan local field __author_id__ hogi"
+* 3- _foreignfield_ : "yahan foriegn field wo (unique or primary key) hogi us table ki jisse join krrahe h yahan author k table ki unique identity ayegi *_id*"
+* 4- _as_ : "Like a variable jis mein sara joining ka data store hoga"
+* _$size_ : isko field ka name dena h jiska sum krna h or sath mein $bhi take ye pata rahe k ye field h
+*  
