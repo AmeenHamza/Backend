@@ -156,4 +156,6 @@
 * 3- _foreignfield_ : "yahan foriegn field wo (unique or primary key) hogi us table ki jisse join krrahe h yahan author k table ki unique identity ayegi *_id*"
 * 4- _as_ : "Like a variable jis mein sara joining ka data store hoga"
 * _$size_ : isko field ka name dena h jiska sum krna h or sath mein $bhi take ye pata rahe k ye field h
-*  
+
+# For update API
+ * Must use _Patch_ function

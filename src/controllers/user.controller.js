@@ -146,8 +146,8 @@ const logout = asyncHandler(async (req, res) => { // debug remaining
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined // value to update
+            $unset: {
+                refreshToken: 1 // value to update
             }
         },
         {
@@ -219,7 +219,7 @@ const changePassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body;
 
     const user = await User.findById(req.user?._id);
-    const isPasswordCorrect = await user.isPasswordCorrect;
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
 
     if (!isPasswordCorrect) {
         throw new ApiError(400, "Invalid old password");
@@ -423,7 +423,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.user?._id) //TODO: new keyword analysis  
+                _id: new mongoose.Types.ObjectId(req.user?._id) //TODO: new keyword is required  
             }
         },
         {
@@ -462,6 +462,8 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             }
         }
     ])
+
+    console.log(user);
 
     return res
         .status(200)
