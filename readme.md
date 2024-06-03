@@ -159,3 +159,32 @@
 
 # For update API
  * Must use _Patch_ function
+
+# Indexing in Mongodb
+
+* Agr hm without indexing k koi cheez search karte h to wo traditional way mein hr document mein jakr query ko search karega ismein lagega time or complexity bhi zyada hogi.
+* To in sab se bchne k lye _mongodb_ hamain indexing provide krta h.
+* indexing krne se jis field ki bhi indexing krni ho mongodb use ek alg data structure banadeta h or uske sath original document ka pointer bhi deta h ab jab bhi hamain search karna hoga to wo documents mein nhi jayega bulke wo is particular field k data structure mein jayega or jese hi usko result milega uske sath original document ka pointer bhi hoga to wo document easily access hojayega. 😁
+
+## What is aggregation Pipeline (_Jo mujhe smjh aya h_)
+
+* Aggregation pipeline is exactly similar to _.find()_ method why i'm telling this because i saw in many videos or in the documentation of _mongoose-aggregation_ which uses _.sort()_ , _.limit()_ and many other methods that is used by aggregation pipeline.
+* But the question is that why we use _aggregation_ framework instead of _find()_ 
+* Becuase _aggregation_ framework have fast query process and optimization in most of the cases and it's fact that in some cases it cause a lot of time and _find()_ comes to solve the problem.
+* _The biggest advantage_ of _aggregation_ is to create new fields within the document.
+
+### $group pipeline
+
+* It's like a MySQL groupBY function 
+* Video.aggregate([
+        {
+                $group: {_id: "$title"}, __views ki based per grouping karo mtlb ek title h how to use dusra h how to set to in do title jese jitni videos hongi uske two different groups bnjainge__
+                _anyName_: {
+                        $push: "$field name of grouping document jo chahiye e.g: name"
+                }
+        }
+])
+
+### INFO: _*important note*_
+
+* pehle mujhe ye smjh nhi araha tha k in array each object k lye pipeline kese lagain but kyunke mere pass maximum ek hi object ka data tha islye confirm nhi horaha tha but when i added multiple objects i realized that pipeline track automatically that a particular field is object or array and perform operations according to the field.
